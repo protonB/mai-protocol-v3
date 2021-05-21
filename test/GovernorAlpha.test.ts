@@ -292,7 +292,8 @@ describe('GovernorAlpha', () => {
         const liquidityPool1 = await LiquidityPoolFactory.attach(deployed1[0]);
         const governor1 = await ethers.getContractAt("TestLpGovernor", deployed1[1]);
 
-        await liquidityPool1.createPerpetual(oracle.address,
+        await liquidityPool1.createPerpetual(
+            oracle.address,
             [toWei("0.1"), toWei("0.05"), toWei("0.001"), toWei("0.001"), toWei("0.2"), toWei("0.02"), toWei("0.00000002"), toWei("0.5"), toWei("1")],
             [toWei("0.01"), toWei("0.1"), toWei("0.06"), toWei("0"), toWei("5"), toWei("0.05"), toWei("0.01"), toWei("1")],
             [toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0")],
@@ -733,4 +734,124 @@ describe('GovernorAlpha', () => {
         console.log("transfer");
         await stk.connect(user5).transfer(user1.address, toWei("1000"));
     })
+
+
+    it("create perpetual", async () => {
+
+        const versionKey = (lp, gov) => {
+            return ethers.utils.solidityKeccak256(["address", "address"], [lp, gov]);
+        }
+
+        const LiquidityPoolFactory = await createLiquidityPoolFactory();
+
+        var symbol = await createContract("SymbolService", [10000]);
+        const ctk = await createContract("CustomERC20", ["collateral", "CTK", 18]);
+        var perpTemplate = await LiquidityPoolFactory.deploy();
+        var govTemplate = await createContract("TestLpGovernor");
+        const poolCreator = await createContract("PoolCreator");
+        await poolCreator.initialize(
+            symbol.address,
+            user0.address,
+            toWei("0.001"),
+        )
+        await symbol.addWhitelistedFactory(poolCreator.address);
+
+        var lpVersion1 = await LiquidityPoolFactory.deploy();
+        var govVersion1 = await createContract("TestLpGovernor");
+        await poolCreator.addVersion(
+            lpVersion1.address,
+            govVersion1.address,
+            1,
+            "version1"
+        );
+        const key1 = versionKey(lpVersion1.address, govVersion1.address);
+
+        const deployed1 = await poolCreator.connect(user1).callStatic.createLiquidityPool(ctk.address, 18, 996, ethers.utils.defaultAbiCoder.encode(["bool", "int256"], [false, toWei("1000000")]));
+        await poolCreator.connect(user1).createLiquidityPool(ctk.address, 18, 996, ethers.utils.defaultAbiCoder.encode(["bool", "int256"], [false, toWei("1000000")]));
+
+        const oracle = await createContract("OracleWrapper", ["USD", "ETH"]);
+        await oracle.setIndexPrice(toWei("1000"), 1000)
+        await oracle.setMarkPrice(toWei("1000"), 1000)
+        const liquidityPool1 = await LiquidityPoolFactory.attach(deployed1[0]);
+        const governor1 = await ethers.getContractAt("TestLpGovernor", deployed1[1]);
+
+        const tx = await liquidityPool1.createPerpetual(
+            oracle.address,
+            [toWei("0.1"), toWei("0.05"), toWei("0.001"), toWei("0.001"), toWei("0.2"), toWei("0.02"), toWei("0.00000002"), toWei("0.5"), toWei("1")],
+            [toWei("0.01"), toWei("0.1"), toWei("0.06"), toWei("0"), toWei("5"), toWei("0.05"), toWei("0.01"), toWei("1")],
+            [toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0")],
+            [toWei("0.1"), toWei("0.2"), toWei("0.2"), toWei("0.5"), toWei("10"), toWei("0.99"), toWei("1"), toWei("1")],
+        )
+        console.log(tx)
+        await liquidityPool1.runLiquidityPool();
+
+
+        await ctk.mint(user1.address, toWei("100000"))
+        await ctk.connect(user1).approve(liquidityPool1.address, toWei("100000"))
+        await liquidityPool1.connect(user1).addLiquidity(toWei("10000"))
+
+
+        let pid = await governor1.connect(user1).callStatic.propose(
+            ["createPerpetual(address,int256[9],int256[8],int256[8],int256[8])"],
+            [
+                ethers.utils.defaultAbiCoder.encode(
+                    ["address", "int256[9]", "int256[8]", "int256[8]", "int256[8]"],
+                    [
+                        oracle.address,
+                        [toWei("0.1"), toWei("0.05"), toWei("0.001"), toWei("0.001"), toWei("0.2"), toWei("0.02"), toWei("0.00000002"), toWei("0.5"), toWei("1")],
+                        [toWei("0.01"), toWei("0.1"), toWei("0.06"), toWei("0"), toWei("5"), toWei("0.05"), toWei("0.01"), toWei("1")],
+                        [toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0")],
+                        [toWei("0.1"), toWei("0.2"), toWei("0.2"), toWei("0.5"), toWei("10"), toWei("0.99"), toWei("1"), toWei("1")],
+                    ]
+                )
+            ],
+            "create new perpetual"
+        );
+
+        console.log(ethers.utils.defaultAbiCoder.encode(
+            ["address", "int256[9]", "int256[8]", "int256[8]", "int256[8]"],
+            [
+                oracle.address,
+                [toWei("0.1"), toWei("0.05"), toWei("0.001"), toWei("0.001"), toWei("0.2"), toWei("0.02"), toWei("0.00000002"), toWei("0.5"), toWei("1")],
+                [toWei("0.01"), toWei("0.1"), toWei("0.06"), toWei("0"), toWei("5"), toWei("0.05"), toWei("0.01"), toWei("1")],
+                [toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0")],
+                [toWei("0.1"), toWei("0.2"), toWei("0.2"), toWei("0.5"), toWei("10"), toWei("0.99"), toWei("1"), toWei("1")],
+            ]
+        ))
+
+        await governor1.connect(user1).propose(
+            ["createPerpetual(address,int256[9],int256[8],int256[8],int256[8])"],
+            [
+                ethers.utils.defaultAbiCoder.encode(
+                    ["address", "int256[9]", "int256[8]", "int256[8]", "int256[8]"],
+                    [
+                        oracle.address,
+                        [toWei("0.1"), toWei("0.05"), toWei("0.001"), toWei("0.001"), toWei("0.2"), toWei("0.02"), toWei("0.00000002"), toWei("0.5"), toWei("1")],
+                        [toWei("0.01"), toWei("0.1"), toWei("0.06"), toWei("0"), toWei("5"), toWei("0.05"), toWei("0.01"), toWei("1")],
+                        [toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0")],
+                        [toWei("0.1"), toWei("0.2"), toWei("0.2"), toWei("0.5"), toWei("10"), toWei("0.99"), toWei("1"), toWei("1")],
+                    ]
+                )
+            ],
+            "create new perpetual"
+        );
+
+        expect(await governor1.state(pid)).to.equal(0)
+
+        await skipBlock(2);
+        console.log(fromState(await governor1.state(pid)));
+        expect(await governor1.state(pid)).to.equal(1)
+
+        await skipBlock(20);
+        console.log(fromState(await governor1.state(pid)));
+        expect(await governor1.state(pid)).to.equal(3)
+
+        await skipBlock(20);
+        console.log(fromState(await governor1.state(pid)));
+        expect(await governor1.state(pid)).to.equal(4)
+
+        await governor1.execute(pid, { gasLimit: 12450000 });
+        console.log(fromState(await governor1.state(pid)));
+        expect(await governor1.state(pid)).to.equal(5)
+    });
 })

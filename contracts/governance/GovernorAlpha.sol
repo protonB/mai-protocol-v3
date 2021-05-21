@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
 import "../interface/ILiquidityPool.sol";
 import "../interface/IPoolCreator.sol";
+
 /**
  * @notice Possible states that a proposal may be in.
  *
@@ -540,14 +541,12 @@ abstract contract GovernorAlpha is Initializable, ContextUpgradeable {
             blockNumber <= eta.add(executionDelay()).add(unlockDelay()),
             "Transaction is stale."
         );
-
         bytes memory callData;
         if (bytes(signature).length == 0) {
             callData = data;
         } else {
             callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
         }
-        // solium-disable-next-line security/no-call-value
         (bool success, bytes memory returnData) = target.call(callData);
         require(success, "Transaction execution reverted.");
         emit ExecuteTransaction(txHash, target, signature, data, eta);
