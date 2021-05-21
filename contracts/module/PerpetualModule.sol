@@ -62,6 +62,13 @@ library PerpetualModule {
     );
     event UpdatePerpetualRiskParameter(uint256 perpetualIndex, int256[8] riskParams);
     event SetOracle(address indexed oldOralce, address indexed newOracle);
+    event UpdatePrice(
+        address indexed oracle,
+        int256 markPrice,
+        uint256 markPriceUpdateTime,
+        int256 indexPrice,
+        uint256 indexPriceUpdatetime
+    );
 
     /**
      * @dev     Get the mark price of the perpetual. If the state of the perpetual is not "NORMAL",
@@ -331,6 +338,13 @@ library PerpetualModule {
         IOracle oracle = IOracle(perpetual.oracle);
         updatePriceData(perpetual.markPriceData, oracle.priceTWAPLong);
         updatePriceData(perpetual.indexPriceData, oracle.priceTWAPShort);
+        emit UpdatePrice(
+            address(oracle),
+            perpetual.markPriceData.price,
+            perpetual.markPriceData.time,
+            perpetual.indexPriceData.price,
+            perpetual.indexPriceData.time
+        );
     }
 
     /**

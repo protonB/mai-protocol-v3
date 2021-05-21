@@ -25,6 +25,13 @@ contract LibraryEvents {
     );
     event UpdatePerpetualRiskParameter(uint256 perpetualIndex, int256[8] riskParams);
     event SetOracle(address indexed oldOralce, address indexed newOracle);
+    event UpdatePrice(
+        address indexed oracle,
+        int256 markPrice,
+        uint256 markPriceUpdateTime,
+        int256 indexPrice,
+        uint256 indexPriceUpdatetime
+    );
 
     // LiquidityPoolModule
     event AddLiquidity(address indexed trader, int256 addedCash, int256 mintedShare);
