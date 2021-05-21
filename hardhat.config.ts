@@ -95,13 +95,8 @@ module.exports = {
         hardhat: {
             allowUnlimitedContractSize: true
         },
-        s10: {
-            url: "http://server10.jy.mcarlo.com:8747",
-            gasPrice: 1,
-            blockGasLimit: "8000000"
-        },
         kovan: {
-            url: "https://kovan.infura.io/v3/3582010d3cc14ab183653e5861d0c118",
+            url: "https://kovan.infura.io/v3/",
             gasPrice: 1e9,
             // accounts: [""],
             timeout: 300000,

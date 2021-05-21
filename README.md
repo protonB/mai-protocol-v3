@@ -12,7 +12,7 @@
 ## Reference
 [Terms](./docs/term.md)
 
-[v3.mcdex.io/references](https://v3.mcdex.io/references/#/en-US/mai-protocol-v3?id=_1-introduction)
+[References](https://mcdex.io/references/)
 
 [AMMDesign](https://mcdexio.github.io/documents/en/Shared-Liquidity-AMM-of-MAI-PROTOCOL-v3.pdf)
 
@@ -25,5 +25,5 @@ The smart contracts were audited by quantstamp: [MCDEX Audit Report](https://cer
 ```
 npm install
 npx hardhat compile
-npx hardhat run --network s10 scripts/s10test.ts
+npx hardhat run scripts/s10test.ts
 ```
