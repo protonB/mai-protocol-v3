@@ -63,6 +63,7 @@ library PerpetualModule {
     event UpdatePerpetualRiskParameter(uint256 perpetualIndex, int256[8] riskParams);
     event SetOracle(address indexed oldOralce, address indexed newOracle);
     event UpdatePrice(
+        uint256 perpetualIndex,
         address indexed oracle,
         int256 markPrice,
         uint256 markPriceUpdateTime,
@@ -339,6 +340,7 @@ library PerpetualModule {
         updatePriceData(perpetual.markPriceData, oracle.priceTWAPLong);
         updatePriceData(perpetual.indexPriceData, oracle.priceTWAPShort);
         emit UpdatePrice(
+            perpetual.id,
             address(oracle),
             perpetual.markPriceData.price,
             perpetual.markPriceData.time,
