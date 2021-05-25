@@ -850,7 +850,7 @@ describe('GovernorAlpha', () => {
         console.log(fromState(await governor1.state(pid)));
         expect(await governor1.state(pid)).to.equal(4)
 
-        await governor1.execute(pid, { gasLimit: 12450000 });
+        await governor1.execute(pid);
         console.log(fromState(await governor1.state(pid)));
         expect(await governor1.state(pid)).to.equal(5)
     });
