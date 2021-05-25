@@ -127,9 +127,6 @@ abstract contract GovernorAlpha is Initializable, ContextUpgradeable {
         uint256 eta
     );
 
-    event MaiLog0(string key);
-    event MaiLog1(string key, bytes message);
-
     /**
      * @notice  An event emitted when a vote has been cast on a proposal.
      */
@@ -540,7 +537,6 @@ abstract contract GovernorAlpha is Initializable, ContextUpgradeable {
     ) internal returns (bytes memory) {
         bytes32 txHash = keccak256(abi.encode(target, signature, data, eta));
         uint256 blockNumber = _getBlockNumber();
-        emit MaiLog1("enter _executeTransaction", abi.encode(blockNumber));
         require(
             blockNumber >= eta.add(executionDelay()),
             "Transaction hasn't surpassed time lock."
@@ -549,7 +545,6 @@ abstract contract GovernorAlpha is Initializable, ContextUpgradeable {
             blockNumber <= eta.add(executionDelay()).add(unlockDelay()),
             "Transaction is stale."
         );
-
         bytes memory callData;
         if (bytes(signature).length == 0) {
             callData = data;
