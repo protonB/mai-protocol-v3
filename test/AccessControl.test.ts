@@ -30,8 +30,8 @@ describe('AccessControl', () => {
         await expect(accessControl.withdraw(user1.address)).to.be.revertedWith("operation forbidden");
         await expect(accessControl.trade(user1.address)).to.be.revertedWith("operation forbidden");
 
-        await expect(accessControl.connect(user1).grantPrivilege(user0.address, 0x8)).to.be.revertedWith("privilege is invalid");
-        await expect(accessControl.connect(user1).revokePrivilege(user0.address, 0x8)).to.be.revertedWith("privilege is invalid");
+        await expect(accessControl.connect(user1).grantPrivilege(user0.address, 0x16)).to.be.revertedWith("privilege is invalid");
+        await expect(accessControl.connect(user1).revokePrivilege(user0.address, 0x16)).to.be.revertedWith("privilege is invalid");
 
         await accessControl.deposit(user0.address);
         await accessControl.withdraw(user0.address);
