@@ -10,8 +10,9 @@ library Constant {
     uint256 internal constant PRIVILEGE_DEPOSIT = 0x1;
     uint256 internal constant PRIVILEGE_WITHDRAW = 0x2;
     uint256 internal constant PRIVILEGE_TRADE = 0x4;
+    uint256 internal constant PRIVILEGE_LIQUIDATE = 0x8;
     uint256 internal constant PRIVILEGE_GUARD =
-        PRIVILEGE_DEPOSIT | PRIVILEGE_WITHDRAW | PRIVILEGE_TRADE;
+        PRIVILEGE_DEPOSIT | PRIVILEGE_WITHDRAW | PRIVILEGE_TRADE | PRIVILEGE_LIQUIDATE;
     // max number of uint256
     uint256 internal constant SET_ALL_PERPETUALS_TO_EMERGENCY_STATE =
         0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;

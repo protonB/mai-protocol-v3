@@ -234,9 +234,9 @@ contract Perpetual is Storage, ReentrancyGuardUpgradeable {
      */
     function liquidateByAMM(uint256 perpetualIndex, address trader)
         external
-        syncState(false)
         nonReentrant
         onlyKeeper
+        syncState(false)
         returns (int256 liquidationAmount)
     {
         require(
@@ -254,6 +254,7 @@ contract Perpetual is Storage, ReentrancyGuardUpgradeable {
      *           - The penalty is taken by trader who takes position but AMM;
      *
      * @param   perpetualIndex      The index of the perpetual in liquidity pool.
+     * @param   liquidator          The address of liquidator to receive the liquidated position.
      * @param   trader              The address of trader to be liquidated.
      * @param   amount              The amount of position to be taken from liquidated trader. The amount always use decimals 18.
      * @param   limitPrice          The worst price liquidator accepts.
@@ -262,11 +263,19 @@ contract Perpetual is Storage, ReentrancyGuardUpgradeable {
      */
     function liquidateByTrader(
         uint256 perpetualIndex,
+        address liquidator,
         address trader,
         int256 amount,
         int256 limitPrice,
         uint256 deadline
-    ) external syncState(false) onlyKeeper nonReentrant returns (int256 liquidationAmount) {
+    )
+        external
+        nonReentrant
+        onlyKeeper
+        onlyAuthorized(liquidator, Constant.PRIVILEGE_LIQUIDATE)
+        syncState(false)
+        returns (int256 liquidationAmount)
+    {
         require(
             _liquidityPool.perpetuals[perpetualIndex].state == PerpetualState.NORMAL,
             "perpetual should be in NORMAL state"
@@ -278,7 +287,7 @@ contract Perpetual is Storage, ReentrancyGuardUpgradeable {
         require(deadline >= block.timestamp, "deadline exceeded");
         liquidationAmount = _liquidityPool.liquidateByTrader(
             perpetualIndex,
-            _msgSender(),
+            liquidator,
             trader,
             amount,
             limitPrice
