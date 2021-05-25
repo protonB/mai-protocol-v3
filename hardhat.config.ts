@@ -6,6 +6,8 @@ import "hardhat-contract-sizer";
 // import "hardhat-abi-exporter";
 import "solidity-coverage"
 
+const pk = process.env["PK"]
+
 task("accounts", "Prints the list of accounts", async (args, hre) => {
     const accounts = await hre.ethers.getSigners();
 
@@ -111,8 +113,8 @@ module.exports = {
         },
         arb: {
             url: "https://kovan5.arbitrum.io/rpc",
-            gasPrice: 35e6,
-            // accounts: [""],
+            gasPrice: 3e8,
+            accounts: [pk],
             timeout: 300000,
             confirmations: 1,
         },

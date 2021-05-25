@@ -15,10 +15,10 @@ export async function restorableEnviron(ethers, options, job, ...args) {
     deployer.finalize()
 }
 
-export async function readOnlyEnviron(ethers, options, job) {
+export async function readOnlyEnviron(ethers, options, job, ...args) {
     // detect network
     const deployer = new Deployer(ethers, options)
     await deployer.initialize();
     // main logic
-    await job(deployer)
+    await job(ethers, deployer, ...args)
 }

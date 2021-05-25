@@ -251,11 +251,11 @@ describe("integration2 - 2 perps. special pool states", () => {
 
         // liquidate by trader
         await perp.connect(user3).deposit(1, user3.address, toWei("500"));
-        await expect(perp.connect(user3).liquidateByTrader(1, user1.address, toWei("-1"), toWei("999"), now + 999999)).to.be.revertedWith("trader is safe");
+        await expect(perp.connect(user3).liquidateByTrader(1, user3.address, user1.address, toWei("-1"), toWei("999"), now + 999999)).to.be.revertedWith("trader is safe");
         await updatePrice(toWei("994"), toWei("1007"));
         // liquidate price is mark price = 1007
         // penalty = 1007 * 1 * 0.002 = 2.014
-        await perp.connect(user3).liquidateByTrader(1, user1.address, toWei("-1"), toWei("1007"), now + 999999);
+        await perp.connect(user3).liquidateByTrader(1, user3.address, user1.address, toWei("-1"), toWei("1007"), now + 999999);
         var { cash, position, margin, isMaintenanceMarginSafe } = await perp.getMarginAccount(1, user1.address);
         expect(cash).approximateBigNumber(toWei("1.438186993858006293")); // 1011.459186993858006293 - 1007 * 1 - 1007 * 1 * 0.002 - 1.007
         expect(position).to.equal(0);
