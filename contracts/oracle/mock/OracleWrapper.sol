@@ -28,8 +28,21 @@ contract OracleWrapper is Ownable {
         _markPriceTimestamp = timestamp;
     }
 
-    function setMarketClosed(bool isClosed_) external onlyOwner {
-        _isMarketClosed = isClosed_;
+    function setMarketClosed(bool isClosed) external onlyOwner {
+        _isMarketClosed = isClosed;
+    }
+
+    function setAll(
+        int256 markPrice,
+        int256 indexPrice,
+        uint256 timestamp,
+        bool isClosed
+    ) external onlyOwner {
+        _markPrice = markPrice;
+        _markPriceTimestamp = timestamp;
+        _indexPrice = indexPrice;
+        _indexPriceTimestamp = timestamp;
+        _isMarketClosed = isClosed;
     }
 
     function setTerminated(bool isTerminated_) external onlyOwner {
@@ -44,19 +57,19 @@ contract OracleWrapper is Ownable {
         return _underlyingAsset;
     }
 
-    function priceTWAPLong() external returns (int256 newPrice, uint256 newTimestamp) {
+    function priceTWAPLong() external view returns (int256 newPrice, uint256 newTimestamp) {
         return (_markPrice, _markPriceTimestamp);
     }
 
-    function priceTWAPShort() external returns (int256 newPrice, uint256 newTimestamp) {
+    function priceTWAPShort() external view returns (int256 newPrice, uint256 newTimestamp) {
         return (_indexPrice, _indexPriceTimestamp);
     }
 
-    function isMarketClosed() external returns (bool) {
+    function isMarketClosed() external view returns (bool) {
         return _isMarketClosed;
     }
 
-    function isTerminated() external returns (bool) {
+    function isTerminated() external view returns (bool) {
         return _isTerminated;
     }
 }

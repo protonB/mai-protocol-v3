@@ -46,6 +46,22 @@ describe("OracleRouter", () => {
         return hash
     }
 
+    let describeOracleByAddress = function(address) {
+        if (address == oracle1.address) {
+            return { collateral: 'USD', underlyingAsset: 'ETH' }
+        }
+        if (address == oracle2.address) {
+            return { collateral: 'USD', underlyingAsset: 'BTC' }
+        }
+        if (address == oracle3.address) {
+            return { collateral: 'ETH', underlyingAsset: 'USD' }
+        }
+        if (address == oracle4.address) {
+            return { collateral: 'BTC', underlyingAsset: 'XXX' }
+        }
+        throw new Error('unknown oracle')
+    }
+
     it("hash", async () => {
         const path = [
             { oracle: oracle1.address, isInverse: false },
@@ -145,6 +161,21 @@ describe("OracleRouter", () => {
                     }
                     expect(await router.underlyingAsset()).to.equal(element.underlying)
                     expect(await router.collateral()).to.equal(element.collateral)
+                    const path = await router.getPath()
+                    expect(path.length).to.equal(element.path.length)
+                    for (let i = 0; i < path.length; i++) {
+                        expect(path[i].oracle).to.equal(element.path[i].oracle)
+                        expect(path[i].isInverse).to.equal(element.path[i].isInverse)
+                    }
+                    const dump = await router.dumpPath()
+                    expect(dump.length).to.equal(element.path.length)
+                    for (let i = 0; i < dump.length; i++) {
+                        expect(dump[i].oracle).to.equal(element.path[i].oracle)
+                        expect(dump[i].isInverse).to.equal(element.path[i].isInverse)
+                        const { underlyingAsset, collateral } = describeOracleByAddress(element.path[i].oracle)
+                        expect(dump[i].underlyingAsset).to.equal(underlyingAsset)
+                        expect(dump[i].collateral).to.equal(collateral)
+                    }
                 });
             });
         });

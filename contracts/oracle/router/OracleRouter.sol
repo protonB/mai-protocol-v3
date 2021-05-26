@@ -33,6 +33,14 @@ contract OracleRouter {
       address oracle;
       bool isInverse;
     }
+
+    struct RouteDump {
+      address oracle;
+      bool isInverse;
+      string underlyingAsset;
+      string collateral;
+    }
+
     Route[] internal _path;
     
     constructor(Route[] memory path_) {
@@ -131,5 +139,26 @@ contract OracleRouter {
             }
         }
         return false;
+    }
+
+    /**
+     * @dev Dump the addresses
+     */
+    function getPath() external view returns (Route[] memory) {
+        return _path;
+    }
+
+    /**
+     * @dev Dump the path with info
+     */
+    function dumpPath() external view returns (RouteDump[] memory) {
+        RouteDump[] memory ret = new RouteDump[](_path.length);
+        for (uint i = 0; i < _path.length; i++) {
+            ret[i].oracle = _path[i].oracle;
+            ret[i].isInverse = _path[i].isInverse;
+            ret[i].underlyingAsset = IOracle(_path[i].oracle).underlyingAsset();
+            ret[i].collateral = IOracle(_path[i].oracle).collateral();
+        }
+        return ret;
     }
 }
