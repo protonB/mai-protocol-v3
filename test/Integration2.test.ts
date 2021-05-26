@@ -362,4 +362,13 @@ describe("integration2 - 2 perps. special pool states", () => {
         let now = Math.floor(Date.now() / 1000);
         await expect(perp.connect(user1).trade(0, user1.address, toWei("4.3"), toWei("999999"), now + 999999, none, 0)).to.be.revertedWith("open interest exceeds limit");
     })
+
+    it("trade on inverse perp", async () => {
+        await perp.runLiquidityPool();
+        // await perp.connect(user1).deposit(0, user1.address, toWei("1"));
+        await perp.connect(user2).addLiquidity(toWei("6600"));
+        let now = Math.floor(Date.now() / 1000);
+        await updatePrice(toWei("0.00053165"), toWei("1000"));
+        await perp.connect(user1).trade(0, user1.address, toWei("1"), toWei("1"), now + 999999, none, 134217728);
+    })
 })
