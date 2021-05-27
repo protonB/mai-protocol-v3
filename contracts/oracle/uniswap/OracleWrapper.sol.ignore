@@ -3,7 +3,7 @@ pragma solidity 0.7.4;
 
 import "./OracleUniswapV2.sol";
 
-contract OracleUniswapV2Wapper is OracleUniswapV2 {
+contract OracleUniswapV2Wrapper is OracleUniswapV2 {
     using FixedPoint for *;
 
     string internal _symbol;
