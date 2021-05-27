@@ -677,4 +677,13 @@ describe("integration2 - 2 perps. trade with targetLeverage", () => {
         expect(await ctk.balanceOf(user0.address)).to.equal(toWei("3.551729704413161928")); // operator fee = 3.45 + 101.729704413161927575 * 0.001
         expect(await ctk.balanceOf(vault.address)).to.equal(toWei("3.551729704413161928")); // vault fee = 3.45 + 101.729704413161927575 * 0.001
     });
+
+    it("trade on inverse perp", async () => {
+        await perp.runLiquidityPool();
+        // await perp.connect(user1).deposit(0, user1.address, toWei("1"));
+        await perp.connect(user2).addLiquidity(toWei("6600"));
+        let now = Math.floor(Date.now() / 1000);
+        await updatePrice(toWei("0.00053165"), toWei("1000"));
+        await perp.connect(user1).trade(0, user1.address, toWei("1"), toWei("1"), now + 999999, none, USE_TARGET_LEVERAGE);
+    });
 })
