@@ -686,4 +686,35 @@ describe("integration2 - 2 perps. trade with targetLeverage", () => {
         await updatePrice(toWei("0.00053165"), toWei("1000"));
         await perp.connect(user1).trade(0, user1.address, toWei("1"), toWei("1"), now + 999999, none, USE_TARGET_LEVERAGE);
     });
+
+    it("heart beat stop", async () => {
+        await perp.runLiquidityPool();
+        await oracle1.setMaxHeartBeat(3600);
+        await oracle2.setMaxHeartBeat(86400);
+
+        // add liquidity
+        await perp.connect(user2).addLiquidity(toWei("1000"));
+        expect(await ctk.balanceOf(user2.address)).to.equal(toWei("9000"));
+        var { intNums } = await perp.getLiquidityPoolInfo();
+        expect(intNums[1]).to.equal(toWei("1000")); // poolCash
+        var { nums } = await perp.getPerpetualInfo(0);
+        expect(nums[0]).to.equal(toWei("0")); // total collateral of perpetual
+        var { nums } = await perp.getPerpetualInfo(1);
+        expect(nums[0]).to.equal(toWei("0")); // total collateral of perpetual
+
+        // long 1 (open)
+        let now = Math.floor(Date.now() / 1000);
+        await perp.connect(user1).trade(0, user1.address, toWei("1"), toWei("1150"), now + 999999, none, USE_TARGET_LEVERAGE);
+        
+        // revert on perp 1
+        await ethers.provider.send("evm_increaseTime", [3600])
+        await ethers.provider.send("evm_mine") 
+        await expect(perp.connect(user1).trade(0, user1.address, toWei("1"), toWei("1150"), now + 999999, none, USE_TARGET_LEVERAGE)).to.be.revertedWith("should be in NORMAL state");
+        
+        // success on perp 2, auto setEmergency
+        await perp.connect(user1).trade(1, user1.address, toWei("1"), toWei("1150"), now + 999999, none, USE_TARGET_LEVERAGE)
+        await expect(perp.setEmergencyState(0)).to.be.revertedWith("should be in NORMAL state");
+        const state = await perp.getPerpetualInfo(0)
+        expect(state.state).to.equal(3 /* EMERGENCY */)
+    });
 })
