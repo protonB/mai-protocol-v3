@@ -217,6 +217,14 @@ describe('LiquidityPool2', () => {
             await liquidityPool.setState(1, 2);
             await ctk.mint(user1.address, toWei('1000'));
             await ctk.connect(user1).approve(liquidityPool.address, toWei("1000000"));
+
+            let now = Math.floor(Date.now() / 1000);
+            await oracle1.setIndexPrice(toWei('100'), now);
+            await oracle1.setMarkPrice(toWei('100'), now);
+            await oracle2.setIndexPrice(toWei('100'), now);
+            await oracle2.setMarkPrice(toWei('100'), now);
+            await liquidityPool.updatePrice(now);
+
             await liquidityPool.donateLiquidity(user1.address, toWei('1000'));
             expect(await stk.balanceOf(user1.address)).approximateBigNumber("0");
             expect(await ctk.balanceOf(user1.address)).approximateBigNumber("0");

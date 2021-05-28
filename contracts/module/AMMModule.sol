@@ -79,16 +79,18 @@ library AMMModule {
      * @param   shareTotalSupply    The total supply of the share token before adding liquidity.
      * @param   cashToAdd           The amount of cash(collateral) added to the liquidity pool.
      * @return  shareToMint         The amount of share token to mint.
+     * @return  addedPoolMargin     The added amount of pool margin after adding liquidity.
      */
     function getShareToMint(
         LiquidityPoolStorage storage liquidityPool,
         int256 shareTotalSupply,
         int256 cashToAdd
-    ) public view returns (int256 shareToMint) {
+    ) public view returns (int256 shareToMint, int256 addedPoolMargin) {
         Context memory context = prepareContext(liquidityPool);
         (int256 poolMargin, ) = getPoolMargin(context);
         context.availableCash = context.availableCash.add(cashToAdd);
         (int256 newPoolMargin, ) = getPoolMargin(context);
+        addedPoolMargin = newPoolMargin.sub(poolMargin);
         if (shareTotalSupply == 0) {
             // first time, if there is pool margin left in pool, it belongs to the first person who adds liquidity
             shareToMint = newPoolMargin;
@@ -155,6 +157,7 @@ library AMMModule {
      * @return  cashToReturn                 The amount of cash(collateral) to return.
      * @return  removedInsuranceFund         The part of insurance fund returned to LP if all perpetuals are in CLEARED state.
      * @return  removedDonatedInsuranceFund  The part of donated insurance fund returned to LP if all perpetuals are in CLEARED state.
+     * @return  removedPoolMargin            The removed amount of pool margin after removing liquidity.
      */
     function getCashToReturn(
         LiquidityPoolStorage storage liquidityPool,
@@ -166,7 +169,8 @@ library AMMModule {
         returns (
             int256 cashToReturn,
             int256 removedInsuranceFund,
-            int256 removedDonatedInsuranceFund
+            int256 removedDonatedInsuranceFund,
+            int256 removedPoolMargin
         )
     {
         require(
@@ -175,9 +179,11 @@ library AMMModule {
         );
         Context memory context = prepareContext(liquidityPool);
         require(isAMMSafe(context, 0), "AMM is unsafe before removing liquidity");
-        int256 poolMargin = calculatePoolMarginWhenSafe(context, 0);
-        require(poolMargin > 0, "pool margin must be positive");
-        poolMargin = shareTotalSupply.sub(shareToRemove).wfrac(poolMargin, shareTotalSupply);
+        removedPoolMargin = calculatePoolMarginWhenSafe(context, 0);
+        require(removedPoolMargin > 0, "pool margin must be positive");
+        int256 poolMargin =
+            shareTotalSupply.sub(shareToRemove).wfrac(removedPoolMargin, shareTotalSupply);
+        removedPoolMargin = removedPoolMargin.sub(poolMargin);
         {
             int256 minPoolMargin = context.squareValue.div(2).sqrt();
             require(poolMargin >= minPoolMargin, "AMM is unsafe after removing liquidity");
@@ -239,6 +245,7 @@ library AMMModule {
      * @return  shareToRemove                The amount of share token to redeem.
      * @return  removedInsuranceFund         The part of insurance fund returned to LP if all perpetuals are in CLEARED state.
      * @return  removedDonatedInsuranceFund  The part of donated insurance fund returned to LP if all perpetuals are in CLEARED state.
+     * @return  removedPoolMargin            The removed amount of pool margin after removing liquidity.
      */
     function getShareToRemove(
         LiquidityPoolStorage storage liquidityPool,
@@ -250,7 +257,8 @@ library AMMModule {
         returns (
             int256 shareToRemove,
             int256 removedInsuranceFund,
-            int256 removedDonatedInsuranceFund
+            int256 removedDonatedInsuranceFund,
+            int256 removedPoolMargin
         )
     {
         require(
@@ -263,6 +271,7 @@ library AMMModule {
         context.availableCash = context.availableCash.sub(cashToReturn);
         require(isAMMSafe(context, 0), "AMM is unsafe after removing liquidity");
         int256 newPoolMargin = calculatePoolMarginWhenSafe(context, 0);
+        removedPoolMargin = poolMargin.sub(newPoolMargin);
         shareToRemove = poolMargin.sub(newPoolMargin).wfrac(shareTotalSupply, poolMargin);
         uint256 length = liquidityPool.perpetualCount;
         bool allCleared = true;
@@ -293,7 +302,8 @@ library AMMModule {
             (
                 shareToRemove,
                 removedInsuranceFund,
-                removedDonatedInsuranceFund
+                removedDonatedInsuranceFund,
+                removedPoolMargin
             ) = getShareToRemoveWhenAllCleared(
                 liquidityPool,
                 cashToReturn,
@@ -314,6 +324,7 @@ library AMMModule {
      * @return  shareToRemove                The amount of share token to redeem.
      * @return  removedInsuranceFund         The part of insurance fund returned to LP if all perpetuals are in CLEARED state.
      * @return  removedDonatedInsuranceFund  The part of donated insurance fund returned to LP if all perpetuals are in CLEARED state.
+     * @return  removedCashFromPool          The part of cash from pool returned to LP if all perpetuals are in CLEARED state.
      */
     function getShareToRemoveWhenAllCleared(
         LiquidityPoolStorage storage liquidityPool,
@@ -326,17 +337,17 @@ library AMMModule {
         returns (
             int256 shareToRemove,
             int256 removedInsuranceFund,
-            int256 removedDonatedInsuranceFund
+            int256 removedDonatedInsuranceFund,
+            int256 removedCashFromPool
         )
     {
-        int256 removedCashFromPool =
-            cashToReturn.wdiv(
-                liquidityPool
-                    .insuranceFund
-                    .add(liquidityPool.donatedInsuranceFund)
-                    .wdiv(poolMargin)
-                    .add(Constant.SIGNED_ONE)
-            );
+        removedCashFromPool = cashToReturn.wdiv(
+            liquidityPool
+                .insuranceFund
+                .add(liquidityPool.donatedInsuranceFund)
+                .wdiv(poolMargin)
+                .add(Constant.SIGNED_ONE)
+        );
         shareToRemove = removedCashFromPool.wfrac(shareTotalSupply, poolMargin);
         removedInsuranceFund = removedCashFromPool.wfrac(
             liquidityPool.insuranceFund,

@@ -119,7 +119,7 @@ contract TestAMM {
     function getShareToMint(int256 shareTotalSupply, int256 cashToAdd)
         public
         view
-        returns (int256)
+        returns (int256, int256)
     {
         return AMMModule.getShareToMint(liquidityPool, shareTotalSupply, cashToAdd);
     }
@@ -138,11 +138,16 @@ contract TestAMM {
         returns (
             int256 cashToReturn,
             int256 removedInsuranceFund,
-            int256 removedDonatedInsuranceFund
+            int256 removedDonatedInsuranceFund,
+            int256 removedPoolMargin
         )
     {
-        (cashToReturn, removedInsuranceFund, removedDonatedInsuranceFund) = AMMModule
-            .getCashToReturn(liquidityPool, shareTotalSupply, shareToRemove);
+        (
+            cashToReturn,
+            removedInsuranceFund,
+            removedDonatedInsuranceFund,
+            removedPoolMargin
+        ) = AMMModule.getCashToReturn(liquidityPool, shareTotalSupply, shareToRemove);
     }
 
     function getShareToRemove(int256 shareTotalSupply, int256 cashToReturn)
@@ -151,10 +156,15 @@ contract TestAMM {
         returns (
             int256 shareToRemove,
             int256 removedInsuranceFund,
-            int256 removedDonatedInsuranceFund
+            int256 removedDonatedInsuranceFund,
+            int256 removedPoolMargin
         )
     {
-        (shareToRemove, removedInsuranceFund, removedDonatedInsuranceFund) = AMMModule
-            .getShareToRemove(liquidityPool, shareTotalSupply, cashToReturn);
+        (
+            shareToRemove,
+            removedInsuranceFund,
+            removedDonatedInsuranceFund,
+            removedPoolMargin
+        ) = AMMModule.getShareToRemove(liquidityPool, shareTotalSupply, cashToReturn);
     }
 }

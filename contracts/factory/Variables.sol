@@ -101,5 +101,7 @@ contract Variables is Initializable, OwnableUpgradeable {
         // return address(0xA0A45F2B616a740C3C7a7fF69Be893f61E6455E3);
         // bsc testnet, heco testnet
         // return address(0x9CaDa02fC03671EA66BaAC7929Cb769214621947);
+        // arb
+        // return address(0x46B5264D5697e5A54d76DCfA6C12b4c467ddd66c);
     }
 }

@@ -628,7 +628,8 @@ describe('AMM', () => {
         successCases.forEach(element => {
             it(element.name, async () => {
                 await amm.setParams(params.ammMaxLeverage, element.amm.cash, element.amm.positionAmount1, element.amm.positionAmount2, params.indexPrice, params.indexPrice, params.state)
-                expect(await amm.getShareToMint(element.totalShare, element.cashToAdd)).approximateBigNumber(element.share);
+                var context = await amm.getShareToMint(element.totalShare, element.cashToAdd);
+                expect(context[0]).approximateBigNumber(element.share);
             })
         })
 

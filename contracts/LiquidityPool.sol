@@ -154,7 +154,7 @@ contract LiquidityPool is Storage, Perpetual, Getter, Governance, LibraryEvents 
         require(_liquidityPool.isRunning, "pool is not running");
         int256 shareTotalSupply = IGovernor(_liquidityPool.shareToken).totalSupply().toInt256();
         if (cashToAdd > 0 && shareToMint == 0) {
-            shareToMintResult = _liquidityPool.getShareToMint(shareTotalSupply, cashToAdd);
+            (shareToMintResult, ) = _liquidityPool.getShareToMint(shareTotalSupply, cashToAdd);
             cashToAddResult = cashToAdd;
         } else if (cashToAdd == 0 && shareToMint > 0) {
             cashToAddResult = _liquidityPool.getCashToAdd(shareTotalSupply, shareToMint);
@@ -182,13 +182,13 @@ contract LiquidityPool is Storage, Perpetual, Getter, Governance, LibraryEvents 
         require(_liquidityPool.isRunning, "pool is not running");
         int256 shareTotalSupply = IGovernor(_liquidityPool.shareToken).totalSupply().toInt256();
         if (shareToRemove > 0 && cashToReturn == 0) {
-            (cashToReturnResult, , ) = _liquidityPool.getCashToReturn(
+            (cashToReturnResult, , , ) = _liquidityPool.getCashToReturn(
                 shareTotalSupply,
                 shareToRemove
             );
             shareToRemoveResult = shareToRemove;
         } else if (shareToRemove == 0 && cashToReturn > 0) {
-            (shareToRemoveResult, , ) = _liquidityPool.getShareToRemove(
+            (shareToRemoveResult, , , ) = _liquidityPool.getShareToRemove(
                 shareTotalSupply,
                 cashToReturn
             );

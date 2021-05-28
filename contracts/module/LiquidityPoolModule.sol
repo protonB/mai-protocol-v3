@@ -38,8 +38,18 @@ library LiquidityPoolModule {
     uint256 public constant OPERATOR_CHECK_IN_TIMEOUT = 10 days;
     uint256 public constant MAX_PERPETUAL_COUNT = 48;
 
-    event AddLiquidity(address indexed trader, int256 addedCash, int256 mintedShare);
-    event RemoveLiquidity(address indexed trader, int256 returnedCash, int256 burnedShare);
+    event AddLiquidity(
+        address indexed trader,
+        int256 addedCash,
+        int256 mintedShare,
+        int256 addedPoolMargin
+    );
+    event RemoveLiquidity(
+        address indexed trader,
+        int256 returnedCash,
+        int256 burnedShare,
+        int256 removedPoolMargin
+    );
     event UpdatePoolMargin(int256 poolMargin);
     event TransferOperatorTo(address indexed newOperator);
     event ClaimOperator(address indexed newOperator);
@@ -797,14 +807,15 @@ library LiquidityPoolModule {
         IGovernor shareToken = IGovernor(liquidityPool.shareToken);
         int256 shareTotalSupply = shareToken.totalSupply().toInt256();
 
-        int256 shareToMint = liquidityPool.getShareToMint(shareTotalSupply, cashToAdd);
+        (int256 shareToMint, int256 addedPoolMargin) =
+            liquidityPool.getShareToMint(shareTotalSupply, cashToAdd);
         require(shareToMint > 0, "received share must be positive");
         // pool cash cannot be added before calculation, DO NOT use transferFromUserToPool
 
         increasePoolCash(liquidityPool, cashToAdd);
         shareToken.mint(trader, shareToMint.toUint256());
 
-        emit AddLiquidity(trader, cashToAdd, shareToMint);
+        emit AddLiquidity(trader, cashToAdd, shareToMint, addedPoolMargin);
     }
 
     /**
@@ -826,13 +837,22 @@ library LiquidityPoolModule {
         int256 shareTotalSupply = shareToken.totalSupply().toInt256();
         int256 removedInsuranceFund;
         int256 removedDonatedInsuranceFund;
+        int256 removedPoolMargin;
         if (cashToReturn == 0 && shareToRemove > 0) {
-            (cashToReturn, removedInsuranceFund, removedDonatedInsuranceFund) = liquidityPool
-                .getCashToReturn(shareTotalSupply, shareToRemove);
+            (
+                cashToReturn,
+                removedInsuranceFund,
+                removedDonatedInsuranceFund,
+                removedPoolMargin
+            ) = liquidityPool.getCashToReturn(shareTotalSupply, shareToRemove);
             require(cashToReturn > 0, "cash to return must be positive");
         } else if (cashToReturn > 0 && shareToRemove == 0) {
-            (shareToRemove, removedInsuranceFund, removedDonatedInsuranceFund) = liquidityPool
-                .getShareToRemove(shareTotalSupply, cashToReturn);
+            (
+                shareToRemove,
+                removedInsuranceFund,
+                removedDonatedInsuranceFund,
+                removedPoolMargin
+            ) = liquidityPool.getShareToRemove(shareTotalSupply, cashToReturn);
             require(shareToRemove > 0, "share to remove must be positive");
         } else {
             revert("invalid parameter");
@@ -855,7 +875,7 @@ library LiquidityPoolModule {
             removedDonatedInsuranceFund
         );
         decreasePoolCash(liquidityPool, removedCashFromPool);
-        emit RemoveLiquidity(trader, cashToReturn, shareToRemove);
+        emit RemoveLiquidity(trader, cashToReturn, shareToRemove, removedPoolMargin);
     }
 
     /**
@@ -871,10 +891,11 @@ library LiquidityPoolModule {
         int256 cashToAdd
     ) public {
         require(cashToAdd > 0, "cash amount must be positive");
+        (, int256 addedPoolMargin) = liquidityPool.getShareToMint(0, cashToAdd);
         liquidityPool.transferFromUser(trader, cashToAdd);
         // pool cash cannot be added before calculation, DO NOT use transferFromUserToPool
         increasePoolCash(liquidityPool, cashToAdd);
-        emit AddLiquidity(trader, cashToAdd, 0);
+        emit AddLiquidity(trader, cashToAdd, 0, addedPoolMargin);
     }
 
     /**

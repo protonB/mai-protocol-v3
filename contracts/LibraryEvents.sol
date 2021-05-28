@@ -34,8 +34,18 @@ contract LibraryEvents {
     );
 
     // LiquidityPoolModule
-    event AddLiquidity(address indexed trader, int256 addedCash, int256 mintedShare);
-    event RemoveLiquidity(address indexed trader, int256 returnedCash, int256 burnedShare);
+    event AddLiquidity(
+        address indexed trader,
+        int256 addedCash,
+        int256 mintedShare,
+        int256 addedPoolMargin
+    );
+    event RemoveLiquidity(
+        address indexed trader,
+        int256 returnedCash,
+        int256 burnedShare,
+        int256 removedPoolMargin
+    );
     event UpdatePoolMargin(int256 poolMargin);
     event TransferOperatorTo(address indexed newOperator);
     event ClaimOperator(address indexed newOperator);
