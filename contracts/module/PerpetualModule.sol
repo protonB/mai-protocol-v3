@@ -144,8 +144,7 @@ library PerpetualModule {
         int256[8] calldata maxRiskParamValues
     ) public {
         perpetual.id = id;
-        perpetual.oracle = oracle;
-
+        setOracle(perpetual, oracle);
         setBaseParameter(perpetual, baseParams);
         setRiskParameter(perpetual, riskParams, minRiskParamValues, maxRiskParamValues);
         perpetual.state = PerpetualState.INITIALIZING;
