@@ -163,13 +163,13 @@ describe("integration2 - 2 perps. trade with targetLeverage", () => {
         activateAccounts = await perp.listActiveAccounts(0, 0, 10);
         expect(activateAccounts[0]).to.equal(user1.address);
         // amm deltaCash = -2100
-        // margin = cash + positionValue = | positionValue | / 2xLev. so cash = -500
-        // newCash = oldCash - withdraw + 2100 - 2100 * 0.003(fee). so withdraw = 1093.7
+        // (margin - 0.5) / 1 = (1500 - 0.5) / 3, margin = 500.333333333333333333, so cash = -499.666666666666666666
+        // newCash = oldCash - withdraw + 2100 - 2100 * 0.003(fee). so withdraw = 1093.366666666666666666
         var { cash, position, margin, isMaintenanceMarginSafe } = await perp.getMarginAccount(0, user1.address);
-        expect(cash).approximateBigNumber(toWei("-500"));
-        expect(await ctk.balanceOf(user1.address)).to.equal(toWei("9133.35")); // 8039.65 + 1093.7
+        expect(cash).approximateBigNumber(toWei("-499.666666666666666666"));
+        expect(await ctk.balanceOf(user1.address)).to.equal(toWei("9133.016666666666666667")); // 8039.65 + 1093.366666666666666666
         expect(position).to.equal(toWei("1"));
-        expect(margin).approximateBigNumber(toWei("500"));
+        expect(margin).approximateBigNumber(toWei("500.333333333333333333"));
         expect(isMaintenanceMarginSafe).to.be.true;
         // AMM rebalance. margin = 1000 * 1 * 1% = 10
         // amm cash + mark pos. so cash = 10 + 1000 * 1
@@ -705,12 +705,12 @@ describe("integration2 - 2 perps. trade with targetLeverage", () => {
         // long 1 (open)
         let now = Math.floor(Date.now() / 1000);
         await perp.connect(user1).trade(0, user1.address, toWei("1"), toWei("1150"), now + 999999, none, USE_TARGET_LEVERAGE);
-        
+
         // revert on perp 1
         await ethers.provider.send("evm_increaseTime", [3600])
-        await ethers.provider.send("evm_mine") 
+        await ethers.provider.send("evm_mine")
         await expect(perp.connect(user1).trade(0, user1.address, toWei("1"), toWei("1150"), now + 999999, none, USE_TARGET_LEVERAGE)).to.be.revertedWith("should be in NORMAL state");
-        
+
         // success on perp 2, auto setEmergency
         await perp.connect(user1).trade(1, user1.address, toWei("1"), toWei("1150"), now + 999999, none, USE_TARGET_LEVERAGE)
         await expect(perp.setEmergencyState(0)).to.be.revertedWith("should be in NORMAL state");

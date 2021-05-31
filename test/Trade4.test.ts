@@ -109,16 +109,16 @@ describe('TradeModule4 - auto deposit/withdraw with targetLeverage', () => {
             await ctk.mint(testTrade.address, toWei("100000"));
             await testTrade.setTotalCollateral(0, toWei("100000"));
 
-            await testTrade.setMarginAccount(0, user1.address, toWei("10000"), toWei("10")); // 10000 + 10 * 1000 / 10000 = 2:1
+            await testTrade.setMarginAccount(0, user1.address, toWei("10000"), toWei("10")); // (10000 + 10 * 1000 - 1) / 10000 = 2:1
             await testTrade.setMarginAccount(0, testTrade.address, toWei("10000"), toWei("0"));
 
             // close only
             await expect(testTrade.connect(user1).trade(0, user1.address, toWei("1"), toWei("20000"), none, IS_CLOSE_ONLY)).to.be.revertedWith("trader must be close only");
             await testTrade.connect(user1).trade(0, user1.address, toWei("-1"), toWei("0"), none, USE_TARGET_LEVERAGE + IS_CLOSE_ONLY);
             var { cash, position } = await testTrade.getMarginAccount(0, user1.address);
-            expect(cash).to.equal(toWei("9000"))  // 9000 + 9 * 1000 : 9000
+            expect(cash).to.equal(toWei("9000.1"))  // margin = 1800.1 because (1800.1 - 1) / 9 = (20000 - 1) / 10
             expect(position).to.equal(toWei("9"))
-            expect(await ctk.balanceOf(user1.address)).to.equal(toWei("1999"))
+            expect(await ctk.balanceOf(user1.address)).to.equal(toWei("1998.9"))
 
             var { cash, position } = await testTrade.getMarginAccount(0, testTrade.address);
             expect(position).to.equal(toWei("1"))
