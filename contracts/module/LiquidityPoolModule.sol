@@ -1114,7 +1114,7 @@ library LiquidityPoolModule {
     ) public view returns (int256 adjustCollateral) {
         int256 markPrice = perpetual.getMarkPrice();
         int256 position2 = perpetual.getPosition(trader);
-        // when close, keep the effective leverage
+        // when close, keep the margin ratio
         // -withdraw == (availableCash2 * close - (deltaCash - fee) * position2 + reservedValue) / position1
         // reservedValue = 0 if postion2 == 0 else keeperGasReward * (-deltaPos)
         adjustCollateral = perpetual.getAvailableCash(trader).wmul(closePosition);
