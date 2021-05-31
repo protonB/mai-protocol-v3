@@ -17,6 +17,7 @@ describe('Governance', () => {
     let governance;
     let TestGovernance;
     let creator;
+    let oracle;
 
     before(async () => {
         accounts = await getAccounts();
@@ -33,12 +34,13 @@ describe('Governance', () => {
             "TestGovernance",
             { PerpetualModule, LiquidityPoolModule }
         );
+        oracle = await createContract("OracleWrapper", ["USD", "ETH"]);
     })
 
     beforeEach(async () => {
         governance = await TestGovernance.deploy();
         await governance.initializeParameters(
-            "0x0000000000000000000000000000000000000000",
+            oracle.address,
             [toWei("0.1"), toWei("0.05"), toWei("0.001"), toWei("0.001"), toWei("0.2"), toWei("0.02"), toWei("0.00000002"), toWei("0.5"), toWei("1")],
             [toWei("0.01"), toWei("0.1"), toWei("0.06"), toWei("0.1"), toWei("5"), toWei("0.2"), toWei("0.04"), toWei("1")],
             [toWei("0.01"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0")],
@@ -116,15 +118,15 @@ describe('Governance', () => {
     })
 
     it('setOracle', async () => {
-        const oracle = await createContract("OracleWrapper", ["A", "B"])
+        const alterOracle = await createContract("OracleWrapper", ["A", "B"])
         await governance.setGovernor(user0.address);
 
-        expect(await governance.oracle(0)).to.equal("0x0000000000000000000000000000000000000000")
-        await governance.setOracle(0, oracle.address);
         expect(await governance.oracle(0)).to.equal(oracle.address)
+        await governance.setOracle(0, alterOracle.address);
+        expect(await governance.oracle(0)).to.equal(alterOracle.address)
 
         await expect(governance.setOracle(0, "0x0000000000000000000000000000000000000000")).to.be.revertedWith("invalid oracle address")
-        await expect(governance.setOracle(0, oracle.address)).to.be.revertedWith("oracle not changed")
+        await expect(governance.setOracle(0, alterOracle.address)).to.be.revertedWith("oracle not changed")
         await expect(governance.setOracle(0, user0.address)).to.be.revertedWith("oracle must be contract")
     })
 
@@ -187,20 +189,21 @@ describe('Governance', () => {
     cases.forEach((element, index) => {
         it(`setAllPerpetualsToEmergencyState-${index}`, async () => {
             await governance.initializeParameters(
-                "0x0000000000000000000000000000000000000000",
+                oracle.address,
                 [toWei("0.1"), toWei("0.05"), toWei("0.001"), toWei("0.001"), toWei("0.2"), toWei("0.02"), toWei("0.00000002"), toWei("0.5"), toWei("1")],
                 [toWei("0.01"), toWei("0.1"), toWei("0.06"), toWei("0.1"), toWei("5"), toWei("0.2"), toWei("0.04"), toWei("1")],
                 [toWei("0.01"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0")],
                 [toWei("0.9"), toWei("1"), toWei("1"), toWei("1"), toWei("10"), toWei("1"), toWei("1"), toWei("1")],
             )
-            const oracle = await createContract("OracleWrapper", ["A", "B"])
+
+            const alterOracle = await createContract("OracleWrapper", ["A", "B"])
             var now = Math.floor(Date.now() / 1000);
-            await oracle.setIndexPrice(toWei("1000"), now)
-            await oracle.setMarkPrice(toWei("1000"), now)
+            await alterOracle.setIndexPrice(toWei("1000"), now)
+            await alterOracle.setMarkPrice(toWei("1000"), now)
 
             await governance.setGovernor(user0.address);
-            await governance.setOracle(0, oracle.address);
-            await governance.setOracle(1, oracle.address);
+            await governance.setOracle(0, alterOracle.address);
+            await governance.setOracle(1, alterOracle.address);
             await governance.setTotalCollateral(0, toWei("999999999"));
             await governance.setTotalCollateral(1, toWei("999999999"));
 
@@ -224,20 +227,20 @@ describe('Governance', () => {
 
     it(`setAllPerpetualsToEmergencyState-fail`, async () => {
         await governance.initializeParameters(
-            "0x0000000000000000000000000000000000000000",
+            oracle.address,
             [toWei("0.1"), toWei("0.05"), toWei("0.001"), toWei("0.001"), toWei("0.2"), toWei("0.02"), toWei("0.00000002"), toWei("0.5"), toWei("1")],
             [toWei("0.01"), toWei("0.1"), toWei("0.06"), toWei("0.1"), toWei("5"), toWei("0.2"), toWei("0.04"), toWei("1")],
             [toWei("0.01"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0"), toWei("0")],
             [toWei("0.9"), toWei("1"), toWei("1"), toWei("1"), toWei("10"), toWei("1"), toWei("1"), toWei("1")],
         )
-        const oracle = await createContract("OracleWrapper", ["A", "B"])
+        const alterOracle = await createContract("OracleWrapper", ["A", "B"])
         var now = Math.floor(Date.now() / 1000);
-        await oracle.setIndexPrice(toWei("1000"), now)
-        await oracle.setMarkPrice(toWei("1000"), now)
+        await alterOracle.setIndexPrice(toWei("1000"), now)
+        await alterOracle.setMarkPrice(toWei("1000"), now)
 
         await governance.setGovernor(user0.address);
-        await governance.setOracle(0, oracle.address);
-        await governance.setOracle(1, oracle.address);
+        await governance.setOracle(0, alterOracle.address);
+        await governance.setOracle(1, alterOracle.address);
         await governance.setTotalCollateral(0, toWei("999999999"));
         await governance.setTotalCollateral(1, toWei("999999999"));
 

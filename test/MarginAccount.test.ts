@@ -436,8 +436,9 @@ describe('MarginModule', () => {
             testMargin = await createContract("TestMarginAccount", [], {
                 PerpetualModule
             });
+            const oracle = await createContract("OracleWrapper", ["USD", "ETH"]);
             await testMargin.createPerpetual(
-                accounts[1].address,
+                oracle.address,
                 // imr       mmr         operatorfr       lpfr             rebate      penalty         keeper      insur       oi
                 [toWei("1"), toWei("1"), toWei("0.0001"), toWei("0.0007"), toWei("0"), toWei("0.005"), toWei("1"), toWei("0"), toWei("1")],
                 [toWei("0.01"), toWei("0.1"), toWei("0.06"), toWei("0.1"), toWei("0.5"), toWei("0.2"), toWei("0.01"), toWei("1")],
