@@ -189,11 +189,11 @@ describe("integration2 - 2 perps. trade with targetLeverage", () => {
         expect(activateAccounts[0]).to.equal(user1.address);
         // amm deltaCash = -1984.996757074682502
         // margin = cash + positionValue = | positionValue | / 2xLev. so cash = 1500
-        // idealMargin = oldCash + deltaCash + deposit - fee + mark newPos.
-        // so deposit = 500 - (-500) - (1984...) + 1984... * 0.003 - (-1000) = 20.958233196541545506
+        // idealMargin = oldCash + deltaCash + deposit - fee + mark newPos. idealMargin = 500
+        // so deposit = 500 - (-499.666666666666666666) - (1984...) + 1984... * 0.003 - (-1000) = 20.624899863208212173
         var { cash, position, margin, isMaintenanceMarginSafe } = await perp.getMarginAccount(0, user1.address);
         expect(cash).approximateBigNumber(toWei("1500"));
-        expect(await ctk.balanceOf(user1.address)).to.equal(toWei("9112.391766803458454494")); // 9133.35 - deposit
+        expect(await ctk.balanceOf(user1.address)).to.equal(toWei("9112.391766803458454494")); // 9133.016666666666666667 - deposit
         expect(position).to.equal(toWei("-1"));
         expect(margin).approximateBigNumber(toWei("500"));
         expect(isMaintenanceMarginSafe).to.be.true;
