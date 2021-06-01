@@ -64,7 +64,7 @@ A governor is driven by a self-contained voting system. Liquidity providers is a
 
 ## Source Code Structure
 
-- **broker**  A relay  to execute pre-signed transactions;
+- **broker** A relay to execute pre-signed transactions;
 - **factory** Implement of `PoolCreator`;
 - **governance**  Implement of `Governance`
 
